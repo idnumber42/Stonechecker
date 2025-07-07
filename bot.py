@@ -1,9 +1,8 @@
 import os
 import openai
 import base64
-import requests
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -14,7 +13,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await file.download_to_drive(file_path)
 
     with open(file_path, "rb") as f:
-        image_data = base64.b64encode(f.read()).decode('utf-8')
+        image_data = base64.b64encode(f.read()).decode("utf-8")
 
     response = openai.chat.completions.create(
         model="gpt-4o",
@@ -26,10 +25,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     )
 
-    reply = response.choices[0].message.content.strip()
-    await update.message.reply_text(reply)
+    await update.message.reply_text(response.choices[0].message.content.strip())
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
-    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    application.run_polling()
+    app = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
+    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    app.run_polling()
