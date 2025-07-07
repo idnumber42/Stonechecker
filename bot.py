@@ -1,3 +1,4 @@
+print("⚙️ Бот стартует... версия от 08.07")
 import os
 import openai
 import base64
