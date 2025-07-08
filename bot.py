@@ -1,4 +1,5 @@
-print("⚙️ Бот стартует... версия от 08.07")
+print("⚙️ Бот стартует... версия от CLEAN")
+
 import os
 import openai
 import base64
@@ -28,7 +29,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(response.choices[0].message.content.strip())
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.run_polling()
