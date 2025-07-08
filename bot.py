@@ -1,39 +1,24 @@
 import os
-import openai
-import base64
+from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    photo = update.message.photo[-1]
-    file = await context.bot.get_file(photo.file_id)
-    file_path = f"/tmp/{photo.file_unique_id}.jpg"
-    await file.download_to_drive(file_path)
+    await update.message.reply_text("Фото получено")
 
-    with open(file_path, "rb") as f:
-        image_data = base64.b64encode(f.read()).decode("utf-8")
+if __name__ == '__main__':
+    import asyncio
 
-    response = openai.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "user", "content": [
-                {"type": "text", "text": "На фото изображён камень. Назови его тип, если возможно, и опиши свойства."},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}
-            ]}
-        ]
-    )
+    async def main():
+        app = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
 
-    await update.message.reply_text(response.choices[0].message.content.strip())
+        app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
-if __name__ == "__main__":
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000)),
-        webhook_url=WEBHOOK_URL
-    )
+        await app.bot.set_webhook(os.getenv("WEBHOOK_URL"))
+
+        await app.run_webhook(
+            listen="0.0.0.0",
+            port=int(os.environ.get("PORT", 8080)),
+            webhook_url=os.getenv("WEBHOOK_URL")
+        )
+
+    asyncio.run(main())
